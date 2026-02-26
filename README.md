@@ -7,4 +7,5 @@
 #### rank (after reasult declear)
 #### student - panel / courses , attendance given or not , timeline of the event
 ####
-####
+#### finish prototype building by tomarrow 
+#### learn aws and cloud 
