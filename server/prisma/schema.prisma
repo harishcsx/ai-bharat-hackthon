@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CLUB_MENTOR
+  EVALUATOR
+  ADMIN
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String   // Added for JWT auth
+  phoneNo    String?
+  rollNo     String?  @unique
+  section    String?
+  hostelNo   String?
+  role       Role     @default(STUDENT)
+  
+  // Relations
+  teamId     String?
+  team       Team?    @relation("TeamMembers", fields: [teamId], references: [id])
+  ledTeam    Team?    @relation("TeamLeader")
+  
+  attendances Attendance[]
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Team {
+  id         String   @id @default(uuid())
+  teamName   String   @unique
+  
+  // Relations
+  leaderId   String   @unique
+  leader     User     @relation("TeamLeader", fields: [leaderId], references: [id])
+  members    User[]   @relation("TeamMembers")
+  
+  evaluations Evaluation[]
+  ranking     Ranking?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  day        Int      // 1 or 2
+  present    Boolean  @default(false)
+  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  
+  mentorId   String?  // ID of the CLUB_MENTOR who marked it
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, day]) // Ensures only one attendance record per user per day
+}
+
+model Evaluation {
+  id                   String   @id @default(uuid())
+  
+  innovation           Int      @default(0) // 1-10
+  technicalComplexity  Int      @default(0) // 1-10
+  impact               Int      @default(0) // 1-10
+  uiUx                 Int      @default(0) // 1-10
+  presentation         Int      @default(0) // 1-10
+  
+  totalScore           Int      @default(0)
+  comments             String?
+  
+  teamId               String
+  team                 Team     @relation(fields: [teamId], references: [id])
+  
+  evaluatorId          String
+  // We can't strictly enforce role=EVALUATOR here in Prisma, must do in logic
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([teamId, evaluatorId]) // One evaluation per team per evaluator
+}
+
+model Ranking {
+  id                  String   @id @default(uuid())
+  rank                Int
+  averageScore        Float
+  
+  innovationScore     Float    // For tie-breaking
+  technicalScore      Float    // For tie-breaking
+  
+  teamId              String   @unique
+  team                Team     @relation(fields: [teamId], references: [id])
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ProblemStatement {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EventConfig {
+  id                     String    @id @default(uuid())
+  isProblemRevealed      Boolean   @default(false)
+  problemRevealDate      DateTime?
+  isRankingsPublished    Boolean   @default(false)
+  
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
