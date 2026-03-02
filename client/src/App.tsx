@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
+import { RegisterTeam } from './pages/RegisterTeam';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<div className="container"><h2>Register Team</h2></div>} />
+                            <Route path="/register" element={<RegisterTeam />} />
                         </Routes>
                     </main>
                 </div>
