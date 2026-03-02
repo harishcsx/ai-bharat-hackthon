@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Home } from './pages/Home';
 
 function App() {
     return (
@@ -20,15 +21,7 @@ function App() {
 
                 <main className="main-content">
                     <Routes>
-                        <Route path="/" element={
-                            <div className="hero">
-                                <h1>Build Bharat Hackathon <span className="highlight">2026</span></h1>
-                                <p>Innovate. Build. Transform.</p>
-                                <div className="hero-cta">
-                                    <a href="/register" className="btn btn-primary btn-large">Join the Hackathon</a>
-                                </div>
-                            </div>
-                        } />
+                        <Route path="/" element={<Home />} />
                         <Route path="/login" element={<div className="container"><h2>Login</h2></div>} />
                         <Route path="/register" element={<div className="container"><h2>Register Team</h2></div>} />
                     </Routes>
