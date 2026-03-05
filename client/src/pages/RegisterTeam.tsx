@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface MemberData {
     name: string;
@@ -13,13 +14,29 @@ interface MemberData {
 export const RegisterTeam: React.FC = () => {
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const [error, setError] = useState<string | null>(null);
 
     const [teamName, setTeamName] = useState('');
     const [leader, setLeader] = useState<MemberData>({
-        name: '', email: '', phoneNo: '', rollNo: '', section: '', hostelNo: ''
+        name: user?.name || '', email: user?.email || '', phoneNo: '', rollNo: '', section: '', hostelNo: ''
     });
+
+    useEffect(() => {
+        if (user) {
+            setLeader(prev => ({
+                ...prev,
+                name: user.name || prev.name,
+                email: user.email || prev.email
+            }));
+        }
+    }, [user]);
+
+    // Force login to register team
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
 
     // Initialize with 1 teammate (minimum requirement)
     const [teammates, setTeammates] = useState<MemberData[]>([
@@ -64,7 +81,7 @@ export const RegisterTeam: React.FC = () => {
 
             setTimeout(() => {
                 setIsLoading(false);
-                navigate('/login');
+                navigate('/dashboard');
             }, 1500);
 
         } catch (err: any) {
@@ -73,16 +90,16 @@ export const RegisterTeam: React.FC = () => {
         }
     };
 
-    const renderMemberFields = (member: MemberData, onChange: (field: keyof MemberData, val: string) => void) => (
+    const renderMemberFields = (member: MemberData, onChange: (field: keyof MemberData, val: string) => void, isLeader: boolean = false) => (
         <>
             <div className="form-row">
                 <div className="form-group">
                     <label>Full Name *</label>
-                    <input type="text" value={member.name} onChange={e => onChange('name', e.target.value)} required />
+                    <input type="text" value={member.name} onChange={e => onChange('name', e.target.value)} disabled={isLeader} required />
                 </div>
                 <div className="form-group">
                     <label>University Email *</label>
-                    <input type="email" value={member.email} onChange={e => onChange('email', e.target.value)} required />
+                    <input type="email" value={member.email} onChange={e => onChange('email', e.target.value)} disabled={isLeader} required />
                 </div>
             </div>
             <div className="form-row">
@@ -143,7 +160,7 @@ export const RegisterTeam: React.FC = () => {
                             </div>
 
                             <h4 style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>Team Leader Profile</h4>
-                            {renderMemberFields(leader, updateLeader)}
+                            {renderMemberFields(leader, updateLeader, true)}
                         </div>
                     )}
 
@@ -164,7 +181,7 @@ export const RegisterTeam: React.FC = () => {
                                             </button>
                                         )}
                                     </div>
-                                    {renderMemberFields(teammate, (f, v) => updateTeammate(index, f, v))}
+                                    {renderMemberFields(teammate, (f, v) => updateTeammate(index, f, v), false)}
                                 </div>
                             ))}
 
@@ -208,10 +225,6 @@ export const RegisterTeam: React.FC = () => {
                         </button>
                     </div>
                 </form>
-
-                <div className="auth-footer" style={{ marginTop: '1.5rem', paddingTop: '1rem' }}>
-                    <p>Already registered? <a href="/login" className="auth-link">Login here</a></p>
-                </div>
             </div>
         </div>
     );

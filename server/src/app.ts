@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './utils/prisma';
+import authRoutes from './routes/auth.routes';
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ app.get('/health', async (req: Request, res: Response) => {
 });
 
 // App Router will go here:
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/teams', teamRoutes);
 // app.use('/api/attendance', attendanceRoutes);
 // app.use('/api/evaluation', evaluationRoutes);

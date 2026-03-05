@@ -1,48 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import axios from 'axios';
 
 export const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
         setError(null);
         setIsLoading(true);
 
         try {
-            // TODO: Actual API call here
-            // const response = await api.post('/auth/login', { email, password });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`, {
+                credential: credentialResponse.credential,
+            });
 
-            // Mocking successful login for now
-            setTimeout(() => {
-                // Mock user from response
-                const mockUser = {
-                    id: '1',
-                    name: 'Demo User',
-                    email: email,
-                    role: 'STUDENT' as Role, // default mock role
-                };
+            const { token, user } = response.data;
+            login(token, user);
 
-                login('mock-jwt-token-123', mockUser);
-
-                // Redirect based on role
-                if (mockUser.role === 'ADMIN') navigate('/admin');
-                else if (mockUser.role === 'EVALUATOR') navigate('/evaluator');
-                else if (mockUser.role === 'CLUB_MENTOR') navigate('/mentor');
-                else navigate('/dashboard');
-
-            }, 800);
+            // Redirect based on role
+            if (user.role === 'ADMIN') navigate('/admin');
+            else if (user.role === 'EVALUATOR') navigate('/evaluator');
+            else if (user.role === 'CLUB_MENTOR') navigate('/mentor');
+            else navigate('/dashboard');
 
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to login. Please check credentials.');
+            console.error('Login error:', err);
+            setError(err.response?.data?.message || 'Failed to login with Google.');
+        } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleGoogleError = () => {
+        setError('Google Sign-In failed. Please try again.');
     };
 
     return (
@@ -55,35 +50,17 @@ export const Login: React.FC = () => {
 
                 {error && <div className="alert alert-error">{error}</div>}
 
-                <form onSubmit={handleLogin} className="auth-form">
-                    <div className="form-group">
-                        <label htmlFor="email">Email Address</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="teamleader@college.edu"
-                            required
+                <div className="auth-form" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '20px 0' }}>
+                    {isLoading ? (
+                        <p>Authenticating...</p>
+                    ) : (
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={handleGoogleError}
+                            useOneTap
                         />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
-
-                    <button type="submit" className="btn btn-primary btn-block" disabled={isLoading}>
-                        {isLoading ? 'Authenticating...' : 'Sign In'}
-                    </button>
-                </form>
+                    )}
+                </div>
 
                 <div className="auth-footer">
                     <p>Don't have a team yet? <a href="/register" className="auth-link">Register Team</a></p>
