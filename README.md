@@ -1,4 +1,5 @@
 building continuous add oauth
+project is closed
 # Build Bharat Hackathon Portal
 
 A comprehensive, full-stack web application designed for the "Build Bharat Hackathon". This portal provides a robust platform for managing the entire hackathon lifecycle, including team registration, role-based dashboards, and a ranking system.
